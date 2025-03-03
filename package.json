@@ -1,0 +1,25 @@
+{
+  "name": "fabric-2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GodKode69/fabric-2.git"
+  },
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "mongoose": "^8.6.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GodKode69/fabric-2/issues"
+  },
+  "homepage": "https://github.com/GodKode69/fabric-2#readme"
+}

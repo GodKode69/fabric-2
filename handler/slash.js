@@ -1,3 +1,4 @@
+// handler/slash.js
 const fs = require("fs");
 const path = require("path");
 const logger = require("../util/logger.js");
@@ -13,8 +14,12 @@ function loadSlashCommands(client) {
         load(filepath);
       } else if (file.endsWith(".js")) {
         const command = require(filepath);
-        if (command.name) {
-          client.slashCommands.set(command.name, command);
+        if (command.data && command.data.name) {
+          client.slashCommands.set(command.data.name, command);
+        } else {
+          logger.warn(
+            `Slash command at ${filepath} is missing a data property with a name.`
+          );
         }
       }
     }
