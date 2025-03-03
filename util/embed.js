@@ -3,7 +3,7 @@ const { EmbedBuilder } = require("discord.js");
 
 module.exports = (client, options = {}) => {
   const embed = new EmbedBuilder()
-    .setColor(client.variables.color || "#2c2f33")
+    .setColor(client.variables.color || "#FFFFFF")
     .setFooter({ text: client.variables.footer || "Error Fetching Footer" })
     .setTimestamp();
 

@@ -1,11 +1,11 @@
 const {
   SlashCommandBuilder,
-  EmbedBuilder,
   ActionRowBuilder,
-  ButtonBuilder,
   ButtonStyle,
 } = require("discord.js");
-const emojis = require("../../assets/emojis.json");
+const buildEmbed = require("../../util/embed.js");
+const { buildButton } = require("../../util/button.js");
+const mongoose = require("mongoose");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,52 +13,48 @@ module.exports = {
     .setDescription(
       "Retrieve the bot's latency including database and Discord API latency."
     ),
-
   run: async (client, interaction) => {
     try {
-      // Defer reply to allow time for processing
       await interaction.deferReply();
       const wsPing = client.ws.ping;
 
-      // Create an action row with the "Additional Info" button
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Secondary)
-          .setLabel("Additional Info")
-          .setCustomId("add")
-      );
+      // Create custom button
+      const button = buildButton({
+        label: "Additional Info",
+        style: ButtonStyle.Secondary,
+        customId: "add",
+      });
+      const row = new ActionRowBuilder().addComponents(button);
 
       await interaction.editReply({
         content: `Pong 🏓 | ${wsPing}ms`,
         components: [row],
       });
 
-      // Measure Database Ping
+      // Measure database ping
       const dbPingStart = Date.now();
       let dbPing = "N/A";
       try {
-        const mongoose = require("mongoose");
         await mongoose.connection.db.admin().ping();
         dbPing = Date.now() - dbPingStart;
       } catch (error) {
         console.error("Database ping error:", error);
       }
 
-      // Measure API Ping (simulate a small delay)
+      // Measure API ping (simulate a delay)
       const apiPingStart = Date.now();
       await new Promise((resolve) => setTimeout(resolve, 30));
       const apiPing = Date.now() - apiPingStart;
 
-      // Define image URLs for footer indication
+      // Determine footer image and text based on wsPing
       const gp =
-        "https://cdn.discordapp.com/attachments/1247439613769945172/1279684945337385072/gp.png?ex=66d556fa&is=66d4057a&hm=bc97f17246c22d08a0f8fe6fda1d2bb0c30e0f640f9316dc7a0e6c2d408df766&";
+        "https://cdn.discordapp.com/attachments/1247439613769945172/1279684945337385072/gp.png";
       const mp =
-        "https://cdn.discordapp.com/attachments/1247439613769945172/1279684967919652915/1242650381192790046.png?ex=66d556ff&is=66d4057f&hm=5019361f0379b89d2b19b9d24eb93fd932f6db378e102080e0c96a677ccdbaf1&";
+        "https://cdn.discordapp.com/attachments/1247439613769945172/1279684967919652915/1242650381192790046.png";
       const bp =
-        "https://cdn.discordapp.com/attachments/1247439613769945172/1279684990346592308/1242650351237333127.png?ex=66d55705&is=66d40585&hm=15f966aaed10e67fae6117a6780b968726cebe0f395ce94a6aeb8696eb77cf2f&";
+        "https://cdn.discordapp.com/attachments/1247439613769945172/1279684990346592308/1242650351237333127.png";
 
-      let ftImg;
-      let ftText;
+      let ftImg, ftText;
       if (wsPing > 500) {
         ftImg = bp;
         ftText = "Experiencing High Ping!";
@@ -70,14 +66,11 @@ module.exports = {
         ftText = "Experiencing Good Ping.";
       }
 
-      // Build the embed with detailed latency info
-      const embed = new EmbedBuilder()
-        .setAuthor({
-          name: client.user.username,
-          iconURL: client.user.displayAvatarURL(),
-        })
-        .setColor(client.variables.color)
-        .addFields([
+      // Build embed using our custom embed builder
+      const embed = buildEmbed(client, {
+        title: "Latency Details",
+        description: "Here are the detailed latency metrics:",
+        fields: [
           {
             name: "Client",
             value: `\`\`\`yaml\n[ ${Math.round(wsPing)}ms ]\n\`\`\``,
@@ -93,9 +86,9 @@ module.exports = {
             value: `\`\`\`yaml\n[ ${apiPing}ms ]\n\`\`\``,
             inline: true,
           },
-        ])
-        .setFooter({ text: ftText, iconURL: ftImg })
-        .setTimestamp();
+        ],
+        footer: { text: ftText, iconURL: ftImg },
+      });
 
       // Create a collector for the button interaction
       const filter = (i) =>
@@ -105,7 +98,6 @@ module.exports = {
         time: 100000,
         idle: 50000,
       });
-
       collector.on("collect", async (i) => {
         if (i.customId === "add") {
           await i.update({ content: "", embeds: [embed], components: [] });
