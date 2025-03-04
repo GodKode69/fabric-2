@@ -1,12 +1,4 @@
-const {
-  StringSelectMenuBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} = require("discord.js");
-const buildEmbed = require("../../util/embed.js");
 const config = require("../../asset/config.js");
-const emojis = require("../../asset/emojis.js"); // Assumed to be available
 
 module.exports = {
   name: "help",
@@ -15,7 +7,7 @@ module.exports = {
   usage: "help [command]",
   category: "info",
   run: async (client, message, args) => {
-    // If a specific command is requested, show detailed info.
+    // If a specific command is requested, show its detailed help.
     if (args[0]) {
       let cmd =
         client.commands.get(args[0].toLowerCase()) ||
@@ -24,7 +16,7 @@ module.exports = {
         );
       if (!cmd) return message.reply("Command not found.");
 
-      const embed = buildEmbed(client, {
+      const detailEmbed = client.buildEmbed(client, {
         title: `Help: ${cmd.name}`,
         description: cmd.description || "No description provided.",
         fields: [
@@ -34,15 +26,25 @@ module.exports = {
           },
           {
             name: "Aliases",
-            value: cmd.aliases ? cmd.aliases.join(", ") : "None",
+            value: cmd.aliases ? cmd.aliases.join(" | ") : "None",
           },
         ],
       });
-      return message.channel.send({ embeds: [embed] });
+      return message.channel.send({ embeds: [detailEmbed] });
     }
 
-    // No specific command: display category‐wise help.
-    // Dynamically group commands by category.
+    // Otherwise, build the paginated help menu.
+    const pages = [];
+
+    // Page 1: Blank/template page for custom content.
+    const page1 = client.buildEmbed(client, {
+      title: "Help Menu - Page 1",
+      description: "This.",
+      footer: { text: "Page 1/2" },
+    });
+    pages.push(page1);
+
+    // Page 2: Dynamic command list grouped by category.
     const commands = client.commands;
     const categories = {};
     commands.forEach((cmd) => {
@@ -50,89 +52,28 @@ module.exports = {
       if (!categories[cat]) categories[cat] = [];
       categories[cat].push(cmd.name);
     });
-
-    let desc = "";
+    const fields = [];
     for (const cat in categories) {
       const catTitle = cat.charAt(0).toUpperCase() + cat.slice(1);
-      desc += `**${catTitle}**: ${categories[cat].join(", ")}\n`;
+      fields.push({ name: catTitle, value: categories[cat].join(", ") });
     }
-
-    const mainEmbed = buildEmbed(client, {
-      title: "Help Menu",
-      description: desc || "No commands available.",
+    const page2 = client.buildEmbed(client, {
+      title: "All Commands",
+      description: "",
+      fields: fields,
       footer: {
-        text: `Total Commands: ${client.commands.size} | Use ${config.prefix}help <command> for details`,
+        text: `Page 2/2 | Use ${config.prefix}help <command> for details`,
       },
     });
+    pages.push(page2);
 
-    // Create control buttons.
-    const homeButton = new ButtonBuilder()
-      .setCustomId("home")
-      .setLabel("Home")
-      .setStyle(ButtonStyle.Secondary);
-    const deleteButton = new ButtonBuilder()
-      .setCustomId("delete")
-      .setLabel("Delete")
-      .setStyle(ButtonStyle.Secondary);
-    const buttonRow = new ActionRowBuilder().addComponents(
-      homeButton,
-      deleteButton
-    );
-
-    // Create a select menu with dynamic category options.
-    const options = [];
-    for (const cat in categories) {
-      const catTitle = cat.charAt(0).toUpperCase() + cat.slice(1);
-      options.push({ label: catTitle, value: cat });
-    }
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId("categorySelect")
-      .setPlaceholder("Select a command category")
-      .addOptions(options);
-    const selectRow = new ActionRowBuilder().addComponents(selectMenu);
-
-    const helpMessage = await message.channel.send({
-      embeds: [mainEmbed],
-      components: [buttonRow, selectRow],
-    });
-
-    const collector = helpMessage.createMessageComponentCollector({
-      filter: (interaction) => interaction.user.id === message.author.id,
-      time: 100000,
-    });
-
-    collector.on("collect", async (interaction) => {
-      if (interaction.isButton()) {
-        if (interaction.customId === "home") {
-          return interaction.update({
-            embeds: [mainEmbed],
-            components: [buttonRow, selectRow],
-          });
-        }
-        if (interaction.customId === "delete") {
-          return helpMessage.delete().catch(() => {});
-        }
-      } else if (interaction.isStringSelectMenu()) {
-        const selectedCategory = interaction.values[0];
-        const cmds = categories[selectedCategory] || [];
-        const catTitle =
-          selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
-        const categoryEmbed = buildEmbed(client, {
-          title: `${catTitle} Commands`,
-          description: cmds.join(", "),
-          footer: { text: `Use ${config.prefix}help <command> for details.` },
-        });
-        return interaction.update({
-          embeds: [categoryEmbed],
-          components: [buttonRow, selectRow],
-        });
-      }
-    });
-
-    collector.on("end", async () => {
-      try {
-        await helpMessage.edit({ components: [] });
-      } catch (e) {}
+    // Send the initial message then call our custom pager.
+    const helpMessage = await message.channel.send({ embeds: [pages[0]] });
+    client.pager.paginate({
+      message: helpMessage,
+      userId: message.author.id,
+      pages,
+      time: 60000,
     });
   },
 };

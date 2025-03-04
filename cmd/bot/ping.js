@@ -1,7 +1,4 @@
-// cmd/ping.js
 const { ActionRowBuilder, ButtonStyle } = require("discord.js");
-const buildEmbed = require("../../util/embed.js");
-const { buildButton } = require("../../util/button.js");
 const mongoose = require("mongoose");
 
 module.exports = {
@@ -10,22 +7,24 @@ module.exports = {
   description:
     "Retrieve the bot's latency including database and Discord API latency.",
   usage: "ping",
+  category: "info",
   run: async (client, message, args) => {
-    // Send initial response
+    // Send an initial message.
     const msg = await message.channel.send("Pinging...");
     const wsPing = client.ws.ping;
 
-    // Create a custom button using our button builder
-    const button = buildButton({
+    // Create the "Additional Info" button using client.buildButton.
+    const button = client.buildButton({
       label: "Additional Info",
       style: ButtonStyle.Secondary,
       customId: "add",
     });
     const row = new ActionRowBuilder().addComponents(button);
 
+    // Edit the initial message with the ping result.
     await msg.edit({ content: `Pong 🏓 | ${wsPing}ms`, components: [row] });
 
-    // Measure database ping
+    // Measure Database Ping.
     const dbPingStart = Date.now();
     let dbPing = "N/A";
     try {
@@ -35,19 +34,18 @@ module.exports = {
       console.error("Database ping error:", error);
     }
 
-    // Measure API ping (simulate a delay)
+    // Measure API Ping (simulate a small delay).
     const apiPingStart = Date.now();
     await new Promise((resolve) => setTimeout(resolve, 30));
     const apiPing = Date.now() - apiPingStart;
 
-    // Determine footer image and text based on wsPing
+    // Define footer images and text based on WebSocket ping.
     const gp =
       "https://cdn.discordapp.com/attachments/1247439613769945172/1279684945337385072/gp.png";
     const mp =
       "https://cdn.discordapp.com/attachments/1247439613769945172/1279684967919652915/1242650381192790046.png";
     const bp =
       "https://cdn.discordapp.com/attachments/1247439613769945172/1279684990346592308/1242650351237333127.png";
-
     let ftImg, ftText;
     if (wsPing > 500) {
       ftImg = bp;
@@ -60,8 +58,8 @@ module.exports = {
       ftText = "Experiencing Good Ping.";
     }
 
-    // Build embed with our custom embed builder
-    const embed = buildEmbed(client, {
+    // Build the detailed latency embed using client.buildEmbed.
+    const embed = client.buildEmbed(client, {
       title: "Latency Details",
       description: "Here are the detailed latency metrics:",
       fields: [
@@ -84,14 +82,16 @@ module.exports = {
       footer: { text: ftText, iconURL: ftImg },
     });
 
-    // Create a collector for the button interaction
+    // Set up a message component collector to handle button interaction.
     const collector = msg.createMessageComponentCollector({
       filter: (interaction) => {
-        if (interaction.user.id === message.author.id) return true;
-        interaction.reply({
-          content: `Only **${message.author.tag}** can interact.`,
-          ephemeral: true,
-        });
+        if (message.author.id === interaction.user.id) return true;
+        else {
+          interaction.reply({
+            content: `Only **${message.author.tag}** can interact.`,
+            ephemeral: true,
+          });
+        }
       },
       time: 100000,
       idle: 50000,

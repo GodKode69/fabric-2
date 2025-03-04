@@ -1,17 +1,58 @@
-const {
-  SlashCommandBuilder,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-} = require("discord.js");
-const buildEmbed = require("../../util/embed.js");
+const { SlashCommandBuilder } = require("discord.js");
 const config = require("../../asset/config.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("help")
-    .setDescription("Displays the help menu."),
+    .setDescription("Retrieves the bot's help menu.")
+    .addStringOption((option) =>
+      option
+        .setName("command")
+        .setDescription("Get detailed help for a command")
+        .setRequired(false)
+    ),
   run: async (client, interaction) => {
-    // Dynamically group slash commands by category.
+    const cmdName = interaction.options.getString("command");
+
+    // If a specific command is requested, show its detailed help.
+    if (cmdName) {
+      let cmd =
+        client.slashCommands.get(cmdName.toLowerCase()) ||
+        client.slashCommands.find(
+          (c) => c.aliases && c.aliases.includes(cmdName.toLowerCase())
+        );
+      if (!cmd)
+        return interaction.reply({
+          content: "Command not found.",
+          ephemeral: true,
+        });
+
+      const detailEmbed = client.buildEmbed(client, {
+        title: `Help: ${cmd.data.name}`,
+        description: cmd.description || "No description provided.",
+        fields: [
+          { name: "Usage", value: `\`${config.prefix}${cmd.data.name}\`` },
+          {
+            name: "Aliases",
+            value: cmd.aliases ? cmd.aliases.join(" | ") : "None",
+          },
+        ],
+      });
+      return interaction.reply({ embeds: [detailEmbed], ephemeral: true });
+    }
+
+    // Otherwise, build the paginated help menu.
+    const pages = [];
+
+    // Page 1: Blank/template page.
+    const page1 = client.buildEmbed(client, {
+      title: "Help Menu - Page 1",
+      description: "This is a blank template page. Customize it as needed.",
+      footer: { text: "Page 1/2" },
+    });
+    pages.push(page1);
+
+    // Page 2: Dynamic command list grouped by category.
     const commands = client.slashCommands;
     const categories = {};
     commands.forEach((cmd) => {
@@ -19,60 +60,27 @@ module.exports = {
       if (!categories[cat]) categories[cat] = [];
       categories[cat].push(cmd.data.name);
     });
-
-    let desc = "";
+    const fields = [];
     for (const cat in categories) {
       const catTitle = cat.charAt(0).toUpperCase() + cat.slice(1);
-      desc += `**${catTitle}**: ${categories[cat].join(", ")}\n`;
+      fields.push({ name: catTitle, value: categories[cat].join(", ") });
     }
-    const mainEmbed = buildEmbed(client, {
-      title: "Help Menu",
-      description: desc || "No commands available.",
-      footer: {
-        text: `Total Commands: ${commands.size} | Use /help <command> for details`,
-      },
+    const page2 = client.buildEmbed(client, {
+      title: "All Slash Commands",
+      description: "",
+      fields: fields,
+      footer: { text: `Page 2/2 | Use /help <command> for details` },
     });
+    pages.push(page2);
 
-    // Create a select menu for category selection.
-    const options = [];
-    for (const cat in categories) {
-      const catTitle = cat.charAt(0).toUpperCase() + cat.slice(1);
-      options.push({ label: catTitle, value: cat });
-    }
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId("helpCategory")
-      .setPlaceholder("Select a command category")
-      .addOptions(options);
-    const row = new ActionRowBuilder().addComponents(selectMenu);
-
-    await interaction.reply({
-      embeds: [mainEmbed],
-      components: [row],
-      ephemeral: true,
-    });
-
-    const filter = (i) =>
-      i.customId === "helpCategory" && i.user.id === interaction.user.id;
-    const collector = interaction.channel.createMessageComponentCollector({
-      filter,
-      time: 100000,
-    });
-
-    collector.on("collect", async (i) => {
-      const selectedCategory = i.values[0];
-      const cmds = categories[selectedCategory] || [];
-      const catTitle =
-        selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
-      const categoryEmbed = buildEmbed(client, {
-        title: `${catTitle} Commands`,
-        description: cmds.join(", "),
-        footer: { text: `Use /help <command> for details.` },
-      });
-      await i.update({ embeds: [categoryEmbed], components: [row] });
-    });
-
-    collector.on("end", async () => {
-      // Optionally remove components after timeout.
+    // Send initial ephemeral reply, then fetch it and pass it to our pager.
+    await interaction.reply({ embeds: [pages[0]], ephemeral: true });
+    const helpMessage = await interaction.fetchReply();
+    client.pager.paginate({
+      message: helpMessage,
+      userId: interaction.user.id,
+      pages,
+      time: 60000,
     });
   },
 };
