@@ -3,7 +3,10 @@ const mongoose = require("mongoose");
 
 module.exports = async function connectMongo(mongoURI, logger) {
   try {
-    await mongoose.connect(mongoURI); // Removed deprecated options
+    // Ensure the writeConcern is set correctly to "majority" (not "majorit")
+    await mongoose.connect(mongoURI, {
+      writeConcern: { w: "majority" },
+    });
     logger.info("Connected to MongoDB successfully.");
   } catch (err) {
     logger.error("MongoDB connection error: " + err);

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+/*const { SlashCommandBuilder } = require("discord.js");
 const db = require("../../data/user/afk.js");
 const buildEmbed = require("../../util/embed.js");
 
@@ -144,3 +144,4 @@ module.exports = {
     return interaction.editReply({ embeds: [embed] });
   },
 };
+*/

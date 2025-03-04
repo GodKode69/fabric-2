@@ -1,4 +1,4 @@
-const db = require("../../data/user/afk.js");
+/*const db = require("../../data/user/afk.js");
 const { ActionRowBuilder, ButtonStyle } = require("discord.js");
 const { buildButton } = require("../../util/button.js");
 const buildEmbed = require("../../util/embed.js");
@@ -205,3 +205,4 @@ module.exports = {
     });
   },
 };
+*/

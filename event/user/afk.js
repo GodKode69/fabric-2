@@ -1,4 +1,4 @@
-const db = require("../../data/user/afk");
+/*const db = require("../../data/user/afk");
 const buildEmbed = require("../../util/embed.js");
 const moment = require("moment");
 
@@ -117,3 +117,4 @@ module.exports = async (client) => {
     }
   });
 };
+*/
