@@ -4,8 +4,15 @@ const { EmbedBuilder } = require("discord.js");
 module.exports = (client, options = {}) => {
   const embed = new EmbedBuilder()
     .setColor(client.variables.color || "#FFFFFF")
-    .setFooter({ text: client.variables.footer || "Error Fetching Footer" })
     .setTimestamp();
+    
+  if (options.footer) {
+    embed.setFooter(options.footer);
+  } else {
+    embed.setFooter({
+      text: client.variables.footer || "Error Fetching Footer",
+    });
+  }
 
   if (options.title) embed.setTitle(options.title);
   if (options.description) embed.setDescription(options.description);

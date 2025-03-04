@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require("discord.js");
 const config = require("../../asset/config.js");
 
 module.exports = {
+  category: "info",
   data: new SlashCommandBuilder()
     .setName("help")
     .setDescription("Retrieves the bot's help menu.")
@@ -14,7 +15,7 @@ module.exports = {
   run: async (client, interaction) => {
     const cmdName = interaction.options.getString("command");
 
-    // If a specific command is requested, show its detailed help.
+    // If a specific command is requested, show its detailed help (ephemeral is acceptable here).
     if (cmdName) {
       let cmd =
         client.slashCommands.get(cmdName.toLowerCase()) ||
@@ -46,8 +47,34 @@ module.exports = {
 
     // Page 1: Blank/template page.
     const page1 = client.buildEmbed(client, {
-      title: "Help Menu - Page 1",
-      description: "This is a blank template page. Customize it as needed.",
+      title: "Fabric | Help Menu",
+      description:
+        "Prefix `" +
+        config.prefix +
+        "`\nParams `<required>`, `[optional]`" +
+        "\nCommands **" +
+        client.commands.size +
+        "** | Slash **" +
+        client.slashCommands.size +
+        "**",
+      fields: [
+        {
+          name: "- Modules",
+          value: ">>> `info`\n`mod`\n`util`\n`fun`\n`misc`",
+          inline: true,
+        },
+        {
+          name: "- Links",
+          value:
+            ">>> [Invite](https://discord.com/oauth2/authorize?client_id=" +
+            client.user.id +
+            "&scope=bot&permissions=8)\n[Support](https://discord.gg/yourserver)" +
+            "\n[Developer](https://discord.com/users/" +
+            client.emj.owner +
+            ")",
+          inline: true,
+        },
+      ],
       footer: { text: "Page 1/2" },
     });
     pages.push(page1);
@@ -69,12 +96,12 @@ module.exports = {
       title: "All Slash Commands",
       description: "",
       fields: fields,
-      footer: { text: `Page 2/2 | Use /help <command> for details` },
+      footer: { text: `Page 2/2 | Use /help <cmd> for details` },
     });
     pages.push(page2);
 
-    // Send initial ephemeral reply, then fetch it and pass it to our pager.
-    await interaction.reply({ embeds: [pages[0]], ephemeral: true });
+    // IMPORTANT: Send the paginated menu as a public message so the components remain interactive.
+    await interaction.reply({ embeds: [pages[0]] });
     const helpMessage = await interaction.fetchReply();
     client.pager.paginate({
       message: helpMessage,

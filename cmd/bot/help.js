@@ -38,8 +38,34 @@ module.exports = {
 
     // Page 1: Blank/template page for custom content.
     const page1 = client.buildEmbed(client, {
-      title: "Help Menu - Page 1",
-      description: "This.",
+      title: "Fabric | Help Menu",
+      description:
+        "Prefix `" +
+        config.prefix +
+        "`\nParams `<required>`, `[optional]`" +
+        "\nCommands **" +
+        client.commands.size +
+        "** | Slash **" +
+        client.slashCommands.size +
+        "**",
+      fields: [
+        {
+          name: "- Modules",
+          value: ">>> `info`\n`mod`\n`util`\n`fun`\n`misc`",
+          inline: true,
+        },
+        {
+          name: "- Links",
+          value:
+            ">>> [Invite](https://discord.com/oauth2/authorize?client_id=" +
+            client.user.id +
+            "&scope=bot&permissions=8)\n[Support](https://discord.gg/yourserver)" +
+            "\n[Developer](https:///discord.com/users/" +
+            client.variables.owner +
+            ")",
+          inline: true,
+        },
+      ],
       footer: { text: "Page 1/2" },
     });
     pages.push(page1);
@@ -55,14 +81,18 @@ module.exports = {
     const fields = [];
     for (const cat in categories) {
       const catTitle = cat.charAt(0).toUpperCase() + cat.slice(1);
-      fields.push({ name: catTitle, value: categories[cat].join(", ") });
+      fields.push({
+        name: catTitle,
+        value: `>>> ${categories[cat].join(", ")}`,
+        inline: true,
+      });
     }
     const page2 = client.buildEmbed(client, {
       title: "All Commands",
       description: "",
       fields: fields,
       footer: {
-        text: `Page 2/2 | Use ${config.prefix}help <command> for details`,
+        text: `Page 2/2 | Use ${config.prefix}help <cmd> for details`,
       },
     });
     pages.push(page2);
