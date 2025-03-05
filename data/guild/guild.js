@@ -4,39 +4,6 @@ const guild = new mongo.Schema({
   guildId: {
     type: String,
   },
-  chatbot: {
-    channelId: {
-      type: String,
-    },
-    persona: {
-      type: String,
-    },
-  },
-  autoresponses: {
-    trigger: {
-      type: String,
-    },
-    response: {
-      type: String,
-    },
-  },
-  autoreaction: {
-    trigger: {
-      type: String,
-    },
-    reaction: {
-      type: String,
-    },
-  },
-  ignore: {
-    channelId: {
-      type: String,
-    },
-    ignore: {
-      type: Boolean,
-      default: true,
-    },
-  },
   prefix: {
     type: String,
   },
@@ -52,6 +19,13 @@ const guild = new mongo.Schema({
   blacklist: {
     type: Boolean,
     default: false,
+  },
+  premium: {
+    enabled: { type: Boolean, default: false },
+    expiresAt: {
+      type: Date,
+      index: { expires: 0 },
+    },
   },
 });
 
