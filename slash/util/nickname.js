@@ -26,7 +26,7 @@ module.exports = {
         embeds: [
           client.buildEmbed(
             client,
-            +`${client.em.util.cross}` + responses.tooLong
+            +`${client.emj.util.cross}` + responses.tooLong
           ),
         ],
         ephemeral: true,
@@ -37,7 +37,7 @@ module.exports = {
         embeds: [
           client.buildEmbed(
             client,
-            +`${client.em.util.cross}` + responses.notManageable
+            +`${client.emj.util.cross}` + responses.notManageable
           ),
         ],
         ephemeral: true,

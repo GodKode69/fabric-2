@@ -13,7 +13,6 @@ const Schema = new mongo.Schema({
     type: String,
     required: true,
   },
-  // Store time as a Number (timestamp)
   time: {
     type: Number,
     required: true,
@@ -23,7 +22,6 @@ const Schema = new mongo.Schema({
     enum: ["global", "local"],
     default: "local",
   },
-  // Stores the original nickname for later restoration
   originalNick: {
     type: String,
     default: null,
