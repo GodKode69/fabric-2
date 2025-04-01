@@ -1,8 +1,7 @@
 // asset/config.js
 
 module.exports = {
-  token:
-    "", // Your Discord bot toke
+  token: "",
   clientId: "1226510987407130624", // Your Discord application's client ID
   prefix: "-", // Default prefix for commands
   mongoURI:
