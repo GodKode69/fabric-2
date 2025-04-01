@@ -2,7 +2,7 @@
 
 module.exports = {
   token:
-    "MTIyNjUxMDk4NzQwNzEzMDYyNA.GARrEe.fQqog3WSEHeCxguUG9lXiHniDWQqk6xJ-Hg5IY", // Your Discord bot toke
+    "", // Your Discord bot toke
   clientId: "1226510987407130624", // Your Discord application's client ID
   prefix: "-", // Default prefix for commands
   mongoURI:
