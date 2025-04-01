@@ -3,6 +3,7 @@
 module.exports = {
   name: "interactionCreate",
   async execute(interaction, client) {
+    
     // Only process slash commands.
     if (!interaction.isChatInputCommand()) return;
 
