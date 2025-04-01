@@ -1,10 +1,17 @@
 // event/cmd/messageCreate.js
+const db = require("../../data/guild/guild.js");
 
 module.exports = {
   name: "messageCreate",
   async execute(message, client) {
     // Ignore messages from bots or those that do not start with the prefix.
     if (message.author.bot) return;
+
+    let guildData = await db.findOne({ guildId: message.guild.id });
+    if (!guildData) {
+      guildData = await db.create({ guildId: message.guild.id });
+    }
+
     const config = require("../../asset/config.js");
     const prefix = config.prefix || "-";
     const mentionRegex = new RegExp(`^<@!?${client.user.id}>\\s*`);

@@ -17,7 +17,7 @@ module.exports = {
       });
     }
     try {
-      await player.destroy();
+      await player.stopTrack();
       // Optionally clear the queue.
       if (player.queue) player.queue = [];
       return msg.reply({

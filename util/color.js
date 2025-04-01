@@ -35,12 +35,4 @@ const colorize = (text, color) => {
   return `${color}${text}${colors.reset}`;
 };
 
-// Predefined color functions
-const log = {
-  error: (text) => console.log(colorize(text, colors.fg.red)),
-  success: (text) => console.log(colorize(text, colors.fg.green)),
-  warning: (text) => console.log(colorize(text, colors.fg.yellow)),
-  info: (text) => console.log(colorize(text, colors.fg.cyan)),
-};
-
-module.exports = { colors, colorize, log };
+module.exports = { colors, colorize };

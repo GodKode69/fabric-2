@@ -24,6 +24,9 @@ const writeLog = (level, message) => {
     case "debug":
       console.log(colorize(logMessage, colors.fg.magenta));
       break;
+    case "mod":
+      console.log(colorize(logMessage, colors.fg.green));
+      break;
     default:
       console.log(logMessage);
   }
@@ -35,6 +38,7 @@ const logger = {
   warn: (message) => writeLog("warn", message),
   info: (message) => writeLog("info", message),
   debug: (message) => writeLog("debug", message),
+  mod: (message) => writeLog("mod", message),
 };
 
 module.exports = logger;

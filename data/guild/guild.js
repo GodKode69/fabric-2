@@ -27,6 +27,12 @@ const guild = new mongo.Schema({
       index: { expires: 0 },
     },
   },
+
+  autoDelete: {
+    enabled: { type: Boolean, default: false },
+    id: { type: String },
+    whitelist: { type: [String] },
+  },
 });
 
 module.exports = mongo.model("guild", guild);

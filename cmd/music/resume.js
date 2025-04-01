@@ -17,7 +17,7 @@ module.exports = {
       });
     }
     try {
-      await player.resume(true);
+      await player.pause(false);
       return msg.reply({
         embeds: [
           client.buildEmbed(client, {

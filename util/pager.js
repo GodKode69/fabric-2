@@ -1,4 +1,5 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const logger = require("./logger");
 
 /**
  * Paginates an array of embed pages.
@@ -72,7 +73,7 @@ async function paginate({ message, userId, pages, time = 60000 }) {
     try {
       await message.edit({ components: [] });
     } catch (err) {
-      logger.error("Failed to disable paginator buttons:", err);
+      //logger.error("Failed to disable paginator buttons:", err);
     }
   });
 }

@@ -49,7 +49,7 @@ async function login(token) {
     }
     await client
       .login(token)
-      .then(() => logger.info(`${client.user.tag} has logged in.`))
+      .then(() => logger.mod(`${client.user.tag} has logged in.`))
       .catch((err) => logger.error("Failed to login: " + err));
   } catch (err) {
     logger.error("Failed to login: " + err);

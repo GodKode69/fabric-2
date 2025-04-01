@@ -20,7 +20,7 @@ function initMusicManager(client) {
     config.lavalink 
   );
 
-  logger.info(`Music Module Started At: ${config.lavalink[0].name}`);
+  logger.mod(`Music Module Started At: ${config.lavalink[0].name}`);
 }
 
 module.exports = { initMusicManager };
