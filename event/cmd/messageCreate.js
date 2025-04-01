@@ -7,24 +7,34 @@ module.exports = {
     if (message.author.bot) return;
     const config = require("../../asset/config.js");
     const prefix = config.prefix || "-";
-    if (!message.content.startsWith(prefix)) return;
+    const mentionRegex = new RegExp(`^<@!?${client.user.id}>\\s*`);
 
-    // Parse command name and arguments.
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    if (
+      !message.content.startsWith(prefix) &&
+      !mentionRegex.test(message.content)
+    )
+      return;
+
+    let content = message.content;
+    if (mentionRegex.test(content)) {
+      content = content.replace(mentionRegex, "");
+    } else {
+      content = content.slice(prefix.length);
+    }
+
+    const args = content.trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
-    // Retrieve command by name or alias.
     const command =
       client.commands.get(commandName) ||
       client.commands.find(
         (cmd) => cmd.aliases && cmd.aliases.includes(commandName)
       );
 
-    if (!command) return; // No matching command found.
+    if (!command) return;
 
     try {
-      // Run the command (any additional checks can be added here).
-      await command.run(client, message, args);
+      await command.execute(client, message, args);
     } catch (error) {
       console.error(error);
       message.reply("There was an error executing that command.");

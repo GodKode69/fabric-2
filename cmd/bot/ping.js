@@ -1,5 +1,86 @@
-const { ActionRowBuilder, ButtonStyle } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonStyle,
+} = require("discord.js");
 const mongoose = require("mongoose");
+
+async function runPing(client, user, send) {
+  const ws = client.ws.ping;
+  const button = client.buildButton({
+    label: "Additional Info",
+    style: ButtonStyle.Secondary,
+    customId: "add",
+  });
+  const row = new ActionRowBuilder().addComponents(button);
+  const msg = await send(`Pong 🏓 | ${ws}ms`, { components: [row] });
+  let dbPing = "N/A",
+    apiPing;
+  const dbStart = Date.now();
+  try {
+    await mongoose.connection.db.admin().ping();
+    dbPing = Date.now() - dbStart;
+  } catch (e) {
+    console.error(e);
+  }
+  const apiStart = Date.now();
+  await new Promise((r) => setTimeout(r, 30));
+  apiPing = Date.now() - apiStart;
+  const [gp, mp, bp] = [
+    "https://cdn.discordapp.com/attachments/1247439613769945172/1279684945337385072/gp.png",
+    "https://cdn.discordapp.com/attachments/1247439613769945172/1279684967919652915/1242650381192790046.png",
+    "https://cdn.discordapp.com/attachments/1247439613769945172/1279684990346592308/1242650351237333127.png",
+  ];
+  const [ftImg, ftText] =
+    ws > 500
+      ? [bp, "Experiencing High Ping!"]
+      : ws > 250
+      ? [mp, "Experiencing Mediocre Ping."]
+      : [gp, "Experiencing Good Ping."];
+  const embed = client.buildEmbed(client, {
+    title: "Latency Details",
+    description: "Here are the detailed latency metrics:",
+    fields: [
+      {
+        name: "Client",
+        value: `\`\`\`yaml\n[ ${Math.round(ws)}ms ]\n\`\`\``,
+        inline: true,
+      },
+      {
+        name: "Database",
+        value: `\`\`\`yaml\n[ ${dbPing}ms ]\n\`\`\``,
+        inline: true,
+      },
+      {
+        name: "Discord API",
+        value: `\`\`\`yaml\n[ ${apiPing}ms ]\n\`\`\``,
+        inline: true,
+      },
+    ],
+    footer: { text: ftText, iconURL: ftImg },
+  });
+  return { msg, embed };
+}
+
+function attachCollector(msg, user, embed) {
+  msg
+    .createMessageComponentCollector({
+      filter: (i) => {
+        if (i.user.id === user.id) return true;
+        i.reply({
+          content: `Only **${user.tag}** can interact.`,
+          ephemeral: true,
+        });
+        return false;
+      },
+      time: 100000,
+      idle: 50000,
+    })
+    .on("collect", async (i) => {
+      if (i.customId === "add")
+        await i.update({ content: "", embeds: [embed], components: [] });
+    });
+}
 
 module.exports = {
   name: "ping",
@@ -8,103 +89,23 @@ module.exports = {
     "Retrieve the bot's latency including database and Discord API latency.",
   usage: "ping",
   category: "info",
-  run: async (client, message, args) => {
-    // Send an initial message.
-    const msg = await message.channel.send("Pinging...");
-    const wsPing = client.ws.ping;
-
-    // Create the "Additional Info" button using client.buildButton.
-    const button = client.buildButton({
-      label: "Additional Info",
-      style: ButtonStyle.Secondary,
-      customId: "add",
-    });
-    const row = new ActionRowBuilder().addComponents(button);
-
-    // Edit the initial message with the ping result.
-    await msg.edit({ content: `Pong 🏓 | ${wsPing}ms`, components: [row] });
-
-    // Measure Database Ping.
-    const dbPingStart = Date.now();
-    let dbPing = "N/A";
-    try {
-      await mongoose.connection.db.admin().ping();
-      dbPing = Date.now() - dbPingStart;
-    } catch (error) {
-      console.error("Database ping error:", error);
-    }
-
-    // Measure API Ping (simulate a small delay).
-    const apiPingStart = Date.now();
-    await new Promise((resolve) => setTimeout(resolve, 30));
-    const apiPing = Date.now() - apiPingStart;
-
-    // Define footer images and text based on WebSocket ping.
-    const gp =
-      "https://cdn.discordapp.com/attachments/1247439613769945172/1279684945337385072/gp.png";
-    const mp =
-      "https://cdn.discordapp.com/attachments/1247439613769945172/1279684967919652915/1242650381192790046.png";
-    const bp =
-      "https://cdn.discordapp.com/attachments/1247439613769945172/1279684990346592308/1242650351237333127.png";
-    let ftImg, ftText;
-    if (wsPing > 500) {
-      ftImg = bp;
-      ftText = "Experiencing High Ping!";
-    } else if (wsPing > 250) {
-      ftImg = mp;
-      ftText = "Experiencing Mediocre Ping.";
+  data: new SlashCommandBuilder()
+    .setName("ping")
+    .setDescription(
+      "Retrieve the bot's latency including database and Discord API latency."
+    ),
+  execute: async (client, ctx) => {
+    if (typeof ctx.deferReply === "function") {
+      await ctx.deferReply();
+      const { embed } = await runPing(client, ctx.user, (c, o) =>
+        ctx.editReply({ content: c, ...o })
+      );
+      attachCollector(await ctx.fetchReply(), ctx.user, embed);
     } else {
-      ftImg = gp;
-      ftText = "Experiencing Good Ping.";
+      const { msg, embed } = await runPing(client, ctx.author, (c, o) =>
+        ctx.channel.send({ content: c, ...o })
+      );
+      attachCollector(msg, ctx.author, embed);
     }
-
-    // Build the detailed latency embed using client.buildEmbed.
-    const embed = client.buildEmbed(client, {
-      title: "Latency Details",
-      description: "Here are the detailed latency metrics:",
-      fields: [
-        {
-          name: "Client",
-          value: `\`\`\`yaml\n[ ${Math.round(wsPing)}ms ]\n\`\`\``,
-          inline: true,
-        },
-        {
-          name: "Database",
-          value: `\`\`\`yaml\n[ ${dbPing}ms ]\n\`\`\``,
-          inline: true,
-        },
-        {
-          name: "Discord API",
-          value: `\`\`\`yaml\n[ ${apiPing}ms ]\n\`\`\``,
-          inline: true,
-        },
-      ],
-      footer: { text: ftText, iconURL: ftImg },
-    });
-
-    // Set up a message component collector to handle button interaction.
-    const collector = msg.createMessageComponentCollector({
-      filter: (interaction) => {
-        if (message.author.id === interaction.user.id) return true;
-        else {
-          interaction.reply({
-            content: `Only **${message.author.tag}** can interact.`,
-            ephemeral: true,
-          });
-        }
-      },
-      time: 100000,
-      idle: 50000,
-    });
-
-    collector.on("collect", async (interaction) => {
-      if (interaction.customId === "add") {
-        await interaction.update({
-          content: "",
-          embeds: [embed],
-          components: [],
-        });
-      }
-    });
   },
 };

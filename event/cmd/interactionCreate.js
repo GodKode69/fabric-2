@@ -16,7 +16,7 @@ module.exports = {
 
     try {
       // Run the slash command (additional checks can be placed here if needed).
-      await command.run(client, interaction);
+      await command.execute(client, interaction);
     } catch (error) {
       console.error(error);
       if (interaction.replied || interaction.deferred) {

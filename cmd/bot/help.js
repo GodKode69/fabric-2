@@ -6,7 +6,7 @@ module.exports = {
   description: "Retrieves the bot's help menu.",
   usage: "help [command]",
   category: "info",
-  run: async (client, message, args) => {
+  execute: async (client, message, args) => {
     // If a specific command is requested, show its detailed help.
     if (args[0]) {
       let cmd =

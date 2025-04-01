@@ -69,19 +69,10 @@ async function paginate({ message, userId, pages, time = 60000 }) {
   });
 
   collector.on("end", async () => {
-    // Disable all buttons when the collector ends.
-    prevButton.setDisabled(true);
-    nextButton.setDisabled(true);
-    deleteButton.setDisabled(true);
-    buttonRow = new ActionRowBuilder().addComponents(
-      prevButton,
-      nextButton,
-      deleteButton
-    );
     try {
-      await message.edit({ components: [buttonRow] });
+      await message.edit({ components: [] });
     } catch (err) {
-      console.error("Failed to disable paginator buttons:", err);
+      logger.error("Failed to disable paginator buttons:", err);
     }
   });
 }

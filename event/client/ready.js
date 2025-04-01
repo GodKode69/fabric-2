@@ -1,31 +1,28 @@
-const logger = require("../../util/logger.js");
+// event/client/ready.js
 const config = require("../../asset/config.js");
+const logger = require("../../util/logger.js");
 
-module.exports = async (client) => {
-  client.on("ready", async () => {
-    const { user, guilds, commands } = client;
-    const prefix = config.prefix;
+module.exports = {
+  name: "ready",
+  once: true,
+  execute(client) {
 
-    logger.info(`${user.tag} has logged in.`);
-
+    // Set activity
     const setActivity = () => {
-      const usersCount = guilds.cache.reduce(
+      const usersCount = client.guilds.cache.reduce(
         (acc, guild) => acc + guild.memberCount,
         0
       );
-      const botGuilds = guilds.cache.size;
-      const commandCount = commands.size;
-
+      const botGuilds = client.guilds.cache.size;
       const activities = [
-        `${prefix}help | ${prefix}invite`,
-        `${commandCount} commands`,
+        `${config.prefix}help | ${config.prefix}invite`,
+        `${client.commands.size} commands`,
         `${usersCount} users`,
         `${botGuilds} guilds`,
       ];
-
       const activity =
         activities[Math.floor(Math.random() * activities.length)];
-      user.setPresence({
+      client.user.setPresence({
         activities: [{ name: activity, type: 3 }],
         status: "dnd",
       });
@@ -33,5 +30,5 @@ module.exports = async (client) => {
 
     setActivity();
     setInterval(setActivity, 120000);
-  });
+  },
 };

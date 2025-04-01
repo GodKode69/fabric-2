@@ -13,14 +13,21 @@ function loadCommands(client) {
         load(filepath);
       } else if (file.endsWith(".js")) {
         const command = require(filepath);
+        // Load as a prefix command if 'name' exists
         if (command.name) {
           client.commands.set(command.name, command);
+        }
+        // Additionally load as a slash command if it has the appropriate structure
+        if (command.data && command.execute) {
+          client.slashCommands.set(command.data.name, command);
         }
       }
     }
   };
   load(commandsDir);
-  logger.info(`Loaded ${client.commands.size} prefix command(s).`);
+  logger.info(
+    `Loaded ${client.commands.size} prefix command(s) and ${client.slashCommands.size} slash command(s).`
+  );
 }
 
 module.exports = { loadCommands };

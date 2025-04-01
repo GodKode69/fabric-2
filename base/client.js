@@ -10,16 +10,18 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildVoiceStates,
     //GatewayIntentBits.GuildPresences,
   ],
   partials: [Partials.Channel],
 });
 
+// Initialize Music Manager.
+const { initMusicManager } = require("../handler/music.js");
 // Initialize collections using our handler function.
 const { initCollections } = require("../handler/collection.js");
 const { initVariables } = require("../handler/variable.js");
 const { loadCommands } = require("../handler/command.js");
-const { loadSlashCommands } = require("../handler/slash.js");
 const { loadEvents } = require("../handler/event.js");
 const { registerSlashCommands } = require("../handler/register.js");
 require("../event/client/anticrash.js")(logger);
@@ -31,15 +33,16 @@ initCollections(client);
 initVariables(client);
 initBuilders(client);
 
+client.config = config;
 // Log in to Discord.
 async function login(token) {
   try {
     console.clear();
     try {
-      loadSlashCommands(client);
+      initMusicManager(client);
       loadCommands(client);
       loadEvents(client);
-      registerSlashCommands(client);
+      //registerSlashCommands(client);
       connectMongo(config.mongoURI, logger);
     } catch (err) {
       logger.error("Failed to load: " + err);
