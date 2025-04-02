@@ -1,7 +1,7 @@
-const mongo = require("mongoose");
+const mongoose = require("mongoose");
 
-const guild = new mongo.Schema({
-  guildId: { type: String },
+const guildSchema = new mongoose.Schema({
+  guildId: { type: String, required: true },
   prefix: { type: String },
   noPrefix: {
     enabled: { type: Boolean, default: false },
@@ -10,12 +10,8 @@ const guild = new mongo.Schema({
   blacklist: { type: Boolean, default: false },
   premium: {
     enabled: { type: Boolean, default: false },
-    expiresAt: {
-      type: Date,
-      index: { expires: 0 },
-    },
+    expiresAt: { type: Date, index: { expires: 0 } },
   },
-
   autoDelete: {
     enabled: { type: Boolean, default: false },
     id: { type: String },
@@ -26,9 +22,17 @@ const guild = new mongo.Schema({
     },
   },
   autoResponder: {
-    text: { type: [String] },
+    triggers: {
+      type: [
+        {
+          trigger: { type: String, required: true },
+          response: { type: String, required: true },
+        },
+      ],
+      default: [],
+    },
     embed: { type: Boolean, default: false },
   },
 });
 
-module.exports = mongo.model("guild", guild);
+module.exports = mongoose.model("guild", guildSchema);

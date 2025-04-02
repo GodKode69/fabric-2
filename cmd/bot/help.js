@@ -15,8 +15,9 @@ module.exports = {
       if (!cmd) return message.reply("Command not found.");
 
       let val;
-      if (cmd.usage) val = "${cmd.name} ${cmd.usage.split(/ +/)}`";
-      else val = "${cmd.name}";
+      if (cmd.usage) {
+        val = `${cmd.name} ${cmd.usage}\``;
+      } else val = `${cmd.name}`;
 
       const detailEmbed = client.buildEmbed(client, {
         title: `Help: ${cmd.name}`,

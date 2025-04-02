@@ -25,11 +25,14 @@ module.exports = {
       }
 
       const embed = client.buildEmbed(client, {
-        title: "Auto Deleter",
         description: notificationMessage,
       });
 
-      await message.channel.send({ embeds: [embed] });
+      await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
+        setTimeout(() => {
+          sentMessage.delete().catch(console.error);
+        }, 2000);
+      });
     } catch (error) {
       console.error("Error in messageCreate handler:", error);
     }
