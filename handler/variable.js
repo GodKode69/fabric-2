@@ -4,7 +4,7 @@ function initVariables(client) {
   client.variables = {
     color: "#FFFFFF", // Default embed color
     footer: "Fabric | Made By GodKode.", // Default embed footer
-    owner: "761102755107438594"
+    owners: ["761102755107438594"],
   };
 }
 

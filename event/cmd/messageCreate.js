@@ -40,6 +40,18 @@ module.exports = {
 
     if (!command) return;
 
+    if (command.owner == true) {
+      if (!client.variables.owners.includes(message.author.guild)) {
+        return message.channel.send({
+          embeds: [
+            client.buildEmbed(client, {
+              description: `You do not possess the authority to execute this command.`,
+            }),
+          ],
+        });
+      }
+    }
+
     try {
       await command.execute(client, message, args);
     } catch (error) {
