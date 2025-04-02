@@ -1,5 +1,3 @@
-const config = require("../../asset/config.js");
-
 module.exports = {
   name: "help",
   aliases: ["h"],
@@ -16,13 +14,17 @@ module.exports = {
         );
       if (!cmd) return message.reply("Command not found.");
 
+      let val;
+      if (cmd.usage) val = "${cmd.name} ${cmd.usage.split(/ +/)}`";
+      else val = "${cmd.name}";
+
       const detailEmbed = client.buildEmbed(client, {
         title: `Help: ${cmd.name}`,
         description: cmd.description || "No description provided.",
         fields: [
           {
             name: "Usage",
-            value: `\`${config.prefix}${cmd.usage || cmd.name}\``,
+            value: `\`${client.variables.prefix}${val}`,
           },
           {
             name: "Aliases",
@@ -33,15 +35,13 @@ module.exports = {
       return message.channel.send({ embeds: [detailEmbed] });
     }
 
-    // Otherwise, build the paginated help menu.
     const pages = [];
 
-    // Page 1: Blank/template page for custom content.
     const page1 = client.buildEmbed(client, {
       title: "Fabric | Help Menu",
       description:
         "Prefix `" +
-        config.prefix +
+        client.variables.prefix +
         "`\nParams `<required>`, `[optional]`" +
         "\nCommands **" +
         client.commands.size +
@@ -92,7 +92,7 @@ module.exports = {
       description: "",
       fields: fields,
       footer: {
-        text: `Page 2/2 | Use ${config.prefix}help <cmd> for details`,
+        text: `Page 2/2 | Use ${client.variables.prefix}help <cmd> for details`,
       },
     });
     pages.push(page2);

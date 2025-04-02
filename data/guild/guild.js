@@ -25,6 +25,10 @@ const guild = new mongo.Schema({
       default: "Bot messages are disabled for CHANNEL.",
     },
   },
+  autoResponder: {
+    text: { type: [String] },
+    embed: { type: Boolean, default: false },
+  },
 });
 
 module.exports = mongo.model("guild", guild);

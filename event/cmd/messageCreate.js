@@ -4,7 +4,6 @@ const db = require("../../data/guild/guild.js");
 module.exports = {
   name: "messageCreate",
   async execute(message, client) {
-    // Ignore messages from bots or those that do not start with the prefix.
     if (message.author.bot) return;
 
     let guildData = await db.findOne({ guildId: message.guild.id });
@@ -12,21 +11,18 @@ module.exports = {
       guildData = await db.create({ guildId: message.guild.id });
     }
 
-    const config = require("../../asset/config.js");
-    const prefix = config.prefix || "-";
+    let pfx = guildData.prefix ? guildData.prefix : client.variables.prefix;
+
     const mentionRegex = new RegExp(`^<@!?${client.user.id}>\\s*`);
 
-    if (
-      !message.content.startsWith(prefix) &&
-      !mentionRegex.test(message.content)
-    )
+    if (!message.content.startsWith(pfx) && !mentionRegex.test(message.content))
       return;
 
     let content = message.content;
     if (mentionRegex.test(content)) {
       content = content.replace(mentionRegex, "");
     } else {
-      content = content.slice(prefix.length);
+      content = content.slice(pfx.length);
     }
 
     const args = content.trim().split(/ +/);
@@ -39,6 +35,16 @@ module.exports = {
       );
 
     if (!command) return;
+
+    if (command.args && !args[0]) {
+      return message.channel.send({
+        embeds: [
+          client.buildEmbed(client, {
+            description: `The command is missing arguments, please reffer to the help command.`,
+          }),
+        ],
+      });
+    }
 
     if (command.owner == true) {
       if (!client.variables.owners.includes(message.author.guild)) {
