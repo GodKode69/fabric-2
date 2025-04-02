@@ -32,6 +32,7 @@ const guildSchema = new mongoose.Schema({
       default: [],
     },
     embed: { type: Boolean, default: false },
+    reply: { type: Boolean, ddefault: false },
   },
 });
 

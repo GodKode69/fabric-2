@@ -2,7 +2,6 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  EmbedBuilder,
   ComponentType,
 } = require("discord.js");
 const db = require("../../data/guild/guild");
@@ -12,7 +11,7 @@ module.exports = {
   aliases: ["autodel"],
   description:
     "Automatically deletes any bot messages in the configured channel.",
-  usage: "autodeleter [channelID] / autodeleter text [custom message]",
+  usage: "autodeleter [channel], text [message]",
   category: "auto",
   execute: async (client, message, args) => {
     try {
@@ -32,12 +31,10 @@ module.exports = {
             await guildData.save();
             return message.channel.send({
               embeds: [
-                new EmbedBuilder()
-                  .setColor("#FFFFFF")
-                  .setTitle("Auto Deleter")
-                  .setDescription(
-                    `Custom auto-delete message updated to: ${customMessage}`
-                  ),
+                client.buildEmbed(client, {
+                  title: "Auto Deleter",
+                  description: `Custom auto-delete message updated to: ${customMessage}`,
+                }),
               ],
             });
           } else {
@@ -54,18 +51,18 @@ module.exports = {
 
             const sentMessage = await message.channel.send({
               embeds: [
-                new EmbedBuilder()
-                  .setColor("#FFFFFF")
-                  .setTitle("Auto Deleter")
-                  .setDescription("Please choose an option below:"),
+                client.buildEmbed(client, {
+                  title: "Auto Deleter",
+                  description: "Please choose an option below:",
+                }),
               ],
               components: [row],
             });
 
-            // Create a message component collector
+            // Collector for button interaction
             const collector = sentMessage.createMessageComponentCollector({
               componentType: ComponentType.Button,
-              time: 15000, // Collector will listen for 15 seconds
+              time: 15000, // 15 seconds
             });
 
             collector.on("collect", async (interaction) => {
@@ -77,27 +74,25 @@ module.exports = {
               }
 
               if (interaction.customId === "set_default") {
-                guildData.autoDelete.text =
-                  "<#${message.channel.id}> has disabled bot messages.";
+                guildData.autoDelete.text = `<#${message.channel.id}> has disabled bot messages.`;
                 await guildData.save();
                 await interaction.update({
                   embeds: [
-                    new EmbedBuilder()
-                      .setColor("#FFFFFF")
-                      .setTitle("Auto Deleter")
-                      .setDescription("Auto delete message set to default."),
+                    client.buildEmbed(client, {
+                      title: "Auto Deleter",
+                      description: "Auto delete message set to default.",
+                    }),
                   ],
                   components: [],
                 });
               } else if (interaction.customId === "help") {
                 await interaction.update({
                   embeds: [
-                    new EmbedBuilder()
-                      .setColor("#FFFFFF")
-                      .setTitle("Auto Deleter Help")
-                      .setDescription(
-                        "Use 'autodeleter text [your custom message]' to set a custom auto-delete message. Use '[CHANNEL]' to mention the channel."
-                      ),
+                    client.buildEmbed(client, {
+                      title: "Auto Deleter Help",
+                      description:
+                        "Use `autodeleter text [your custom message]` to set a custom auto-delete message. Use `[CHANNEL]` to mention the channel.",
+                    }),
                   ],
                   components: [],
                 });
@@ -108,12 +103,11 @@ module.exports = {
               if (collected.size === 0) {
                 sentMessage.edit({
                   embeds: [
-                    new EmbedBuilder()
-                      .setColor("#FFFFFF")
-                      .setTitle("Auto Deleter")
-                      .setDescription(
-                        "No interaction received within the time limit."
-                      ),
+                    client.buildEmbed(client, {
+                      title: "Auto Deleter",
+                      description:
+                        "No interaction received within the time limit.",
+                    }),
                   ],
                   components: [],
                 });
@@ -128,12 +122,11 @@ module.exports = {
           if (!channel) {
             return message.channel.send({
               embeds: [
-                new EmbedBuilder()
-                  .setColor("#FFFFFF")
-                  .setTitle("Auto Deleter")
-                  .setDescription(
-                    "Invalid channel. Please ensure the channel exists and is accessible."
-                  ),
+                client.buildEmbed(client, {
+                  title: "Auto Deleter",
+                  description:
+                    "Invalid channel. Please ensure the channel exists and is accessible.",
+                }),
               ],
             });
           }
@@ -144,10 +137,10 @@ module.exports = {
 
           return message.channel.send({
             embeds: [
-              new EmbedBuilder()
-                .setColor("#FFFFFF")
-                .setTitle("Auto Deleter")
-                .setDescription(`Auto delete enabled for <#${channelID}>.`),
+              client.buildEmbed(client, {
+                title: "Auto Deleter",
+                description: `Auto delete enabled for <#${channelID}>.`,
+              }),
             ],
           });
         }
@@ -160,14 +153,12 @@ module.exports = {
 
         return message.channel.send({
           embeds: [
-            new EmbedBuilder()
-              .setColor("#FFFFFF")
-              .setTitle("Auto Deleter")
-              .setDescription(
-                `Auto delete has been ${
-                  guildData.autoDelete.enabled ? "enabled" : "disabled"
-                } for this channel.`
-              ),
+            client.buildEmbed(client, {
+              title: "Auto Deleter",
+              description: `Auto delete has been ${
+                guildData.autoDelete.enabled ? "enabled" : "disabled"
+              } for this channel.`,
+            }),
           ],
         });
       }
@@ -175,10 +166,10 @@ module.exports = {
       console.error("Auto Deleter Error:", error);
       return message.channel.send({
         embeds: [
-          new EmbedBuilder()
-            .setColor("#FFFFFF")
-            .setTitle("Auto Deleter")
-            .setDescription(`An error occurred: \`${error.message}\``),
+          client.buildEmbed(client, {
+            title: "Auto Deleter",
+            description: `An error occurred: \`${error.message}\``,
+          }),
         ],
       });
     }

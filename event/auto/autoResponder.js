@@ -9,19 +9,25 @@ module.exports = {
       const data = await db.findOne({ guildId: message.guild.id });
       if (!data || !data.autoResponder) return;
 
-      const { triggers, embed } = data.autoResponder;
+      const { triggers, embed, reply } = data.autoResponder;
       if (!Array.isArray(triggers) || triggers.length === 0) return;
 
       for (const t of triggers) {
         if (message.content.toLowerCase().includes(t.trigger.toLowerCase())) {
-          if (embed) {
-            const embedReply = client.buildEmbed(client, {
-              description: `${t.response}`,
-            });
-            await message.channel.send({ embeds: [embedReply] });
+          const response = embed
+            ? {
+                embeds: [
+                  client.buildEmbed(client, { description: t.response }),
+                ],
+              }
+            : { content: t.response };
+
+          if (reply) {
+            await message.reply(response);
           } else {
-            await message.channel.send(`${t.response}`);
+            await message.channel.send(response);
           }
+
           // Only respond to the first matching trigger
           break;
         }

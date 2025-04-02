@@ -14,10 +14,16 @@ module.exports = {
         );
       if (!cmd) return message.reply("Command not found.");
 
-      let val;
+      let usageText;
+      let p = client.variables.prefix;
       if (cmd.usage) {
-        val = `${cmd.name} ${cmd.usage}\``;
-      } else val = `${cmd.name}`;
+        const usages = cmd.usage
+          .split(",")
+          .map((u) => `\`${p}${cmd.name} ${u.trim()}\``);
+        usageText = usages.join("\n");
+      } else {
+        usageText = `\`${p}${cmd.name}\``;
+      }
 
       const detailEmbed = client.buildEmbed(client, {
         title: `Help: ${cmd.name}`,
@@ -25,14 +31,21 @@ module.exports = {
         fields: [
           {
             name: "Usage",
-            value: `\`${client.variables.prefix}${val}`,
+            value: usageText,
           },
           {
             name: "Aliases",
             value: cmd.aliases ? cmd.aliases.join(" | ") : "None",
+            inline: true
           },
+          {
+            name: "Args",
+            value: cmd.args? "True" : "False",
+            inline: true
+          }
         ],
       });
+
       return message.channel.send({ embeds: [detailEmbed] });
     }
 

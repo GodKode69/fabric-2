@@ -2,17 +2,14 @@ const db = require("../../data/guild/guild");
 
 module.exports = {
   name: "autoresponder",
-  aliases: ["autorespond"],
+  aliases: ["autorespond", "autores"],
   description: "Automatically respond to the configured trigger.",
-  usage: "<add|remove> <trigger> <response>, list, embed <true|false>",
+  usage:
+    "<add|remove> <trigger> <response>, list, embed <true|false>, reply <true|false>",
   category: "auto",
   args: true,
   execute: async (client, message, args) => {
     let data = await db.findOne({ guildId: message.guild.id });
-    // Ensure autoResponder exists and uses the new triggers array
-    if (!data.autoResponder) {
-      data.autoResponder = { triggers: [], embed: false };
-    }
     if (!Array.isArray(data.autoResponder.triggers)) {
       data.autoResponder.triggers = [];
     }
@@ -30,7 +27,11 @@ module.exports = {
         });
       }
       const trigger = args[1].replace(/^`+|`+$/g, "").trim();
-      const response = args.slice(2).join(" ").replace(/^`+|`+$/g, "").trim();      
+      const response = args
+        .slice(2)
+        .join(" ")
+        .replace(/^`+|`+$/g, "")
+        .trim();
 
       // Check for disabled substrings
       const disabledTriggers = ["@everyone", "@here"];
@@ -137,6 +138,40 @@ module.exports = {
         userId: message.author.id,
         pages,
         time: 60000,
+      });
+    } else if (subCommand === "reply") {
+      if (args.length < 2) {
+        return message.channel.send({
+          embeds: [
+            client.buildEmbed(client, {
+              description: `Usage: \`autoresponder reply <true|false>\``,
+            }),
+          ],
+        });
+      }
+      const replyStatus = args[1].toLowerCase();
+      if (replyStatus === "true") {
+        data.autoResponder.reply = true;
+      } else if (replyStatus === "false") {
+        data.autoResponder.reply = false;
+      } else {
+        return message.channel.send({
+          embeds: [
+            client.buildEmbed(client, {
+              description: `Invalid option. Please use \`true\` or \`false\`.`,
+            }),
+          ],
+        });
+      }
+      await data.save();
+      return message.channel.send({
+        embeds: [
+          client.buildEmbed(client, {
+            description: `Autoresponder reply has been ${
+              replyStatus === "true" ? "enabled" : "disabled"
+            }.`,
+          }),
+        ],
       });
     } else if (subCommand === "embed") {
       if (args.length < 2) {
