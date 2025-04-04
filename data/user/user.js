@@ -11,12 +11,9 @@ const Schema = new mongoose.Schema({
     default: false,
   },
   noPrefix: {
-    type: Boolean,
-    default: false,
-  },
-  expiresAt: {
-    type: Date,
-    index: { expires: 0 },
+    active: { type: Boolean, default: false },
+    enabled: { type: Boolean, default: false },
+    expiresAt: { type: Date, index: { expires: 0 } },
   },
 });
 

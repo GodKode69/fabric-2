@@ -1,4 +1,3 @@
-/*
 module.exports = {
     name: "",
     aliases: [""],
@@ -10,4 +9,4 @@ module.exports = {
     owner: false,
     execute: async (client, message, args) => {},
   };
-*/
+

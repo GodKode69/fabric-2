@@ -11,7 +11,7 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
-    //GatewayIntentBits.GuildPresences,
+    // GatewayIntentBits.GuildPresences,
   ],
   partials: [Partials.Channel],
 });
@@ -29,11 +29,34 @@ require("../event/shard/shardError.js")(client, logger);
 const connectMongo = require("../event/database/mongo.js");
 const { initBuilders } = require("../handler/builder.js");
 
+// Initialize custom collections, variables, and builders.
 initCollections(client);
 initVariables(client);
 initBuilders(client);
 
+// Load emojis from asset/emoji.js into client.emoji using a plain object
+const emojiData = require("../asset/emoji.js");
+function initEmojis(client) {
+  client.emoji = {}; // Use plain object for direct dot notation access
+
+  let emc = 0;
+  for (const category in emojiData) {
+    if (Object.prototype.hasOwnProperty.call(emojiData, category)) {
+      client.emoji[category] = {};
+      for (const [key, value] of Object.entries(emojiData[category])) {
+        client.emoji[category][key] = value;
+        emc++;
+      }
+    }
+  }
+
+  logger.mod("Loaded " + emc + " emojis.");
+}
+
+
+// Attach config to client
 client.config = config;
+
 // Log in to Discord.
 async function login(token) {
   try {
@@ -42,7 +65,9 @@ async function login(token) {
       initMusicManager(client);
       loadCommands(client);
       loadEvents(client);
-      //registerSlashCommands(client);
+      initEmojis(client);
+      // Uncomment the following line if you want to register slash commands
+      // registerSlashCommands(client);
       connectMongo(config.mongoURI, logger);
     } catch (err) {
       logger.error("Failed to load: " + err);
@@ -56,4 +81,5 @@ async function login(token) {
   }
 }
 login(config.token);
+
 module.exports = client;

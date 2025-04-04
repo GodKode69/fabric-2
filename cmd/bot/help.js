@@ -1,3 +1,5 @@
+const guild = require("../../data/guild/guild");
+
 module.exports = {
   name: "help",
   aliases: ["h"],
@@ -6,6 +8,8 @@ module.exports = {
   category: "info",
   execute: async (client, message, args) => {
     // If a specific command is requested, show its detailed help.
+    let gp = await guild.findOne({ guildId: message.guild.id });
+    let p = client.variables.prefix ? gp.prefix : client.variables.prefix;
     if (args[0]) {
       let cmd =
         client.commands.get(args[0].toLowerCase()) ||
@@ -15,7 +19,7 @@ module.exports = {
       if (!cmd) return message.reply("Command not found.");
 
       let usageText;
-      let p = client.variables.prefix;
+
       if (cmd.usage) {
         const usages = cmd.usage
           .split(",")
@@ -36,13 +40,13 @@ module.exports = {
           {
             name: "Aliases",
             value: cmd.aliases ? cmd.aliases.join(" | ") : "None",
-            inline: true
+            inline: true,
           },
           {
             name: "Args",
-            value: cmd.args? "True" : "False",
-            inline: true
-          }
+            value: cmd.args ? "True" : "False",
+            inline: true,
+          },
         ],
       });
 
@@ -55,7 +59,7 @@ module.exports = {
       title: "Fabric | Help Menu",
       description:
         "Prefix `" +
-        client.variables.prefix +
+        p +
         "`\nParams `<required>`, `[optional]`" +
         "\nCommands **" +
         client.commands.size +
@@ -97,8 +101,8 @@ module.exports = {
       const catTitle = cat.charAt(0).toUpperCase() + cat.slice(1);
       fields.push({
         name: catTitle,
-        value: `>>> ${categories[cat].join(", ")}`,
-        inline: true,
+        value: `-# ${categories[cat].join(", ")}`,
+        inline: false,
       });
     }
     const page2 = client.buildEmbed(client, {
@@ -106,7 +110,7 @@ module.exports = {
       description: "",
       fields: fields,
       footer: {
-        text: `Page 2/2 | Use ${client.variables.prefix}help <cmd> for details`,
+        text: `Page 2/2 | Use ${p}help <cmd> for details`,
       },
     });
     pages.push(page2);

@@ -8,10 +8,16 @@ module.exports = {
 
     let guildData = await db.findOne({ guildId: message.guild.id });
     if (!guildData) {
-      guildData = await db.create({ guildId: message.guild.id });
+      guildData = await db.create({
+        guildId: message.guild.id,
+        prefix: client.variables.prefix,
+      });
     }
 
-    let pfx = guildData.prefix ? guildData.prefix : client.variables.prefix;
+    let pfx;
+    if (guildData.prefix != client.variables.prefix) {
+      pfx = guildData.prefix;
+    } else pfx = client.variables.prefix;
 
     const mentionRegex = new RegExp(`^<@!?${client.user.id}>\\s*`);
 
@@ -40,14 +46,14 @@ module.exports = {
       return message.channel.send({
         embeds: [
           client.buildEmbed(client, {
-            description: `The command is missing arguments, please reffer to the help command.`,
+            description: `The command is missing arguments, please refer to the help command.`,
           }),
         ],
       });
     }
 
     if (command.owner == true) {
-      if (!client.variables.owners.includes(message.author.guild)) {
+      if (!client.variables.owners.includes(message.author.id)) {
         return message.channel.send({
           embeds: [
             client.buildEmbed(client, {
